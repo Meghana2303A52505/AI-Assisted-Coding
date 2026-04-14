@@ -1,50 +1,42 @@
-#generate a code to implement bubble sort with ai comments and provide time complexity analysis
-import time
-class Student:
-    def __init__(self, name, roll_no, cgpa):
-        self.name = name
-        self.roll_no = roll_no
-        self.cgpa = cgpa
+def binary_search(arr, target):
+    """
+    Performs binary search to find the index of 'target' in a sorted list 'arr'.
 
-def bubble_sort(students):
-    n = len(students)
+    Args:
+        arr (list): Sorted list of elements.
+        target: Element to search for.
 
-    # Traverse through all elements in the list
-    for i in range(n):
-        # Last i elements are already in place, no need to check them
-        for j in range(0, n-i-1):
-            # Swap if the element found is greater than the next element
-            if students[j].cgpa < students[j+1].cgpa:
-                students[j], students[j+1] = students[j+1], students[j]
-def generate_students(n):
-    students = []
+    Returns:
+        int: Index of 'target' if found, else -1.
 
-    for i in range(n):
-        name = f"Student_{i+1}"
-        roll_no = i + 1
-        cgpa = round(5.0 * (i + 1) / n, 2)  # Generate CGPA between 0 and 5
-        students.append(Student(name, roll_no, cgpa))
+    Complexity:
+        Best-case: O(1)   - Target is at the middle.
+        Average-case: O(log n)
+        Worst-case: O(log n)
+    """
+    left, right = 0, len(arr) - 1
+    while left <= right:
+        mid = (left + right) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    return -1
 
-    return students
+# Test cases
 if __name__ == "__main__":
-    n = 10  # Number of students to generate
-    students = generate_students(n)
+    arr1 = [1, 3, 5, 7, 9, 11]
+    arr2 = [2, 4, 6, 8, 10]
+    arr3 = []
+    arr4 = [5]
 
-    print("Before sorting:")
-    for student in students:
-        print(f"{student.name}: {student.cgpa}")
-
-    start_time = time.time()
-    bubble_sort(students)
-    end_time = time.time()
-
-    print("\nAfter sorting:")
-    for student in students:
-        print(f"{student.name}: {student.cgpa}")
-
-    print(f"\nTime taken to sort: {end_time - start_time:.6f} seconds")
-# Time Complexity Analysis:
-# The time complexity of bubble sort is O(n^2) in the worst and average cases
-# because it requires two nested loops to compare each element with every other element.
-# In the best case, when the list is already sorted, the time complexity is O(n)
-# because it only requires one pass to check if the list is sorted. However, bubble sort is generally not efficient for large datasets compared to other sorting algorithms like merge sort or quick sort.
+    print(binary_search(arr1, 7))    # Output: 3
+    print(binary_search(arr1, 1))    # Output: 0
+    print(binary_search(arr1, 11))   # Output: 5
+    print(binary_search(arr1, 12))   # Output: -1
+    print(binary_search(arr2, 6))    # Output: 2
+    print(binary_search(arr3, 1))    # Output: -1
+    print(binary_search(arr4, 5))    # Output: 0
+    print(binary_search(arr4, 2))    # Output: -1

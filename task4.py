@@ -1,60 +1,52 @@
-# Inventory system: Efficient search and sort algorithms for thousands of products
+from datetime import datetime
 
-# Recommendation:
-# - Search: Use a hash map (dictionary) for O(1) search by product ID, and an inverted index (dictionary) for O(1) search by name.
-# - Sort: Use Timsort (Python's built-in sorted()), which is efficient for large datasets and stable.
-
-# Justification:
-# - Dataset size: Thousands of products (not millions), so in-memory structures are feasible.
-# - Update frequency: Moderate; dictionaries allow fast updates.
-# - Performance: Hash maps provide instant search; Timsort is optimal for real-world data.
-
-# Implementation:
-
-class Product:
-    def __init__(self, product_id, name, price, quantity):
-        self.product_id = product_id
-        self.name = name
-        self.price = price
-        self.quantity = quantity
+class Booking:
+    def __init__(self, ticket_id, passenger_name, train_number, seat_number, travel_date):
+        self.ticket_id = ticket_id
+        self.passenger_name = passenger_name
+        self.train_number = train_number
+        self.seat_number = seat_number
+        self.travel_date = datetime.strptime(travel_date, "%Y-%m-%d")
 
     def __repr__(self):
-        return f"Product({self.product_id}, {self.name}, {self.price}, {self.quantity})"
+        return (f"Booking(ticket_id={self.ticket_id}, passenger_name={self.passenger_name}, "
+                f"train_number={self.train_number}, seat_number={self.seat_number}, "
+                f"travel_date={self.travel_date.strftime('%Y-%m-%d')})")
 
-class Inventory:
+class RailwayReservationSystem:
     def __init__(self):
-        self.products = []
-        self.id_index = {}
-        self.name_index = {}
+        self.bookings = []
+        self.ticket_index = {}
 
-    def add_product(self, product):
-        self.products.append(product)
-        self.id_index[product.product_id] = product
-        self.name_index[product.name.lower()] = product
+    def add_booking(self, booking):
+        self.bookings.append(booking)
+        self.ticket_index[booking.ticket_id] = booking
 
-    def search_by_id(self, product_id):
-        return self.id_index.get(product_id)
+    # Efficient search: Hash table (dictionary) lookup for ticket ID (O(1) time)
+    def search_ticket(self, ticket_id):
+        return self.ticket_index.get(ticket_id, None)
 
-    def search_by_name(self, name):
-        return self.name_index.get(name.lower())
+    # Efficient sort: Python's built-in sort (Timsort, O(n log n)), stable and fast
+    def sort_bookings_by_date(self):
+        self.bookings.sort(key=lambda b: b.travel_date)
 
-    def sort_by_price(self, reverse=False):
-        return sorted(self.products, key=lambda p: p.price, reverse=reverse)
+    def sort_bookings_by_seat(self):
+        self.bookings.sort(key=lambda b: b.seat_number)
 
-    def sort_by_quantity(self, reverse=False):
-        return sorted(self.products, key=lambda p: p.quantity, reverse=reverse)
-
-# Example usage:
+# Example usage
 if __name__ == "__main__":
-    inventory = Inventory()
-    inventory.add_product(Product("P001", "Apple", 1.2, 100))
-    inventory.add_product(Product("P002", "Banana", 0.8, 150))
-    inventory.add_product(Product("P003", "Orange", 1.5, 80))
+    system = RailwayReservationSystem()
+    system.add_booking(Booking("T001", "Alice", "12345", 12, "2024-07-01"))
+    system.add_booking(Booking("T002", "Bob", "12345", 5, "2024-06-30"))
+    system.add_booking(Booking("T003", "Charlie", "54321", 8, "2024-07-02"))
 
     # Search
-    print("Search by ID:", inventory.search_by_id("P002"))
-    print("Search by Name:", inventory.search_by_name("orange"))
+    print("Search T002:", system.search_ticket("T002"))
 
-    # Sort
-    print("Sort by Price:", inventory.sort_by_price())
-    print("Sort by Quantity:", inventory.sort_by_quantity(reverse=True))
+    # Sort by date
+    system.sort_bookings_by_date()
+    print("Sorted by date:", system.bookings)
+
+    # Sort by seat number
+    system.sort_bookings_by_seat()
+    print("Sorted by seat:", system.bookings)

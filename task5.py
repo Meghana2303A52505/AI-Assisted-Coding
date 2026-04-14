@@ -1,85 +1,49 @@
-import random
-import string
-import time
+from datetime import datetime
+from typing import List, Dict, Optional
 
-# Simulate stock price data
-def generate_stock_data(num_stocks=100):
-    stocks = []
-    for _ in range(num_stocks):
-        symbol = ''.join(random.choices(string.ascii_uppercase, k=4))
-        opening = round(random.uniform(10, 500), 2)
-        closing = round(opening * random.uniform(0.95, 1.05), 2)
-        stocks.append({'symbol': symbol, 'opening': opening, 'closing': closing})
-    return stocks
+# Data structure for allocation details
+class Allocation:
+    def __init__(self, student_id: str, room_number: int, floor: int, allocation_date: str):
+        self.student_id = student_id
+        self.room_number = room_number
+        self.floor = floor
+        self.allocation_date = datetime.strptime(allocation_date, "%Y-%m-%d")
 
-# Calculate percentage change
-def percentage_change(stock):
-    return ((stock['closing'] - stock['opening']) / stock['opening']) * 100
+    def __repr__(self):
+        return (f"Allocation(student_id={self.student_id}, room_number={self.room_number}, "
+                f"floor={self.floor}, allocation_date={self.allocation_date.date()})")
 
-# Heap Sort implementation
-def heapify(arr, n, i, key):
-    largest = i
-    l = 2 * i + 1
-    r = 2 * i + 2
-    if l < n and key(arr[l]) > key(arr[largest]):
-        largest = l
-    if r < n and key(arr[r]) > key(arr[largest]):
-        largest = r
-    if largest != i:
-        arr[i], arr[largest] = arr[largest], arr[i]
-        heapify(arr, n, largest, key)
+# Optimized search: Use a dictionary for O(1) lookup by student_id
+class HostelManagementSystem:
+    def __init__(self):
+        self.allocations: List[Allocation] = []
+        self.student_index: Dict[str, Allocation] = {}
 
-def heap_sort(arr, key):
-    n = len(arr)
-    for i in range(n // 2 - 1, -1, -1):
-        heapify(arr, n, i, key)
-    for i in range(n - 1, 0, -1):
-        arr[0], arr[i] = arr[i], arr[0]
-        heapify(arr, i, 0, key)
-    arr.reverse()  # To get descending order
+    def add_allocation(self, allocation: Allocation):
+        self.allocations.append(allocation)
+        self.student_index[allocation.student_id] = allocation
 
-# Search using Hash Map
-def build_stock_map(stocks):
-    return {stock['symbol']: stock for stock in stocks}
+    def search_by_student_id(self, student_id: str) -> Optional[Allocation]:
+        return self.student_index.get(student_id)
 
-def search_stock(stock_map, symbol):
-    return stock_map.get(symbol)
+    # Optimized sort: Use Python's built-in Timsort (sorted()), which is stable and efficient
+    def sort_by_room_number(self) -> List[Allocation]:
+        return sorted(self.allocations, key=lambda x: x.room_number)
 
-# Performance comparison
-def performance_test():
-    stocks = generate_stock_data(10000)
-    stock_map = build_stock_map(stocks)
-    symbols = [stock['symbol'] for stock in stocks]
-    search_symbol = random.choice(symbols)
+    def sort_by_allocation_date(self) -> List[Allocation]:
+        return sorted(self.allocations, key=lambda x: x.allocation_date)
 
-    # Heap Sort
-    stocks_copy = stocks.copy()
-    start = time.time()
-    heap_sort(stocks_copy, key=percentage_change)
-    heap_sort_time = time.time() - start
+# Justification:
+# - Dictionary indexing allows O(1) search for student_id.
+# - Python's sorted() uses Timsort, which is O(n log n) and stable, ideal for sorting records.
 
-    # Standard sorted()
-    start = time.time()
-    sorted_stocks = sorted(stocks, key=percentage_change, reverse=True)
-    sorted_time = time.time() - start
-
-    # Hash Map search
-    start = time.time()
-    result = search_stock(stock_map, search_symbol)
-    hash_search_time = time.time() - start
-
-    # Standard list search
-    start = time.time()
-    result = next((stock for stock in stocks if stock['symbol'] == search_symbol), None)
-    list_search_time = time.time() - start
-
-    print(f"Heap Sort time: {heap_sort_time:.6f}s")
-    print(f"sorted() time: {sorted_time:.6f}s")
-    print(f"Hash Map search time: {hash_search_time:.6f}s")
-    print(f"List search time: {list_search_time:.6f}s")
-    print("Trade-offs:")
-    print("- Heap Sort is efficient for large datasets but less convenient than sorted().")
-    print("- Hash Map (dict) search is O(1) and much faster than list search (O(n)).")
-
+# Example usage
 if __name__ == "__main__":
-    performance_test()
+    hms = HostelManagementSystem()
+    hms.add_allocation(Allocation("S001", 101, 1, "2024-06-01"))
+    hms.add_allocation(Allocation("S002", 102, 1, "2024-06-03"))
+    hms.add_allocation(Allocation("S003", 201, 2, "2024-06-02"))
+
+    print("Search by student ID S002:", hms.search_by_student_id("S002"))
+    print("Sorted by room number:", hms.sort_by_room_number())
+    print("Sorted by allocation date:", hms.sort_by_allocation_date())

@@ -1,75 +1,61 @@
-import random
+from typing import List, Dict, Any
+import bisect
 
-def quick_sort(arr):
-    """
-    Sorts an array using the Quick Sort algorithm (recursive).
-    Args:
-        arr (list): List of elements to sort.
-    Returns:
-        list: Sorted list.
-    """
-    if len(arr) <= 1:
-        return arr
-    pivot = arr[0]
-    left = [x for x in arr[1:] if x < pivot]
-    right = [x for x in arr[1:] if x >= pivot]
-    return quick_sort(left) + [pivot] + quick_sort(right)
+# AI Recommendation:
+# For searching by appointment ID, Binary Search is suitable if the data is sorted by ID; otherwise, Linear Search.
+# For sorting, use Python's built-in sort (Timsort), which is efficient for both time and consultation fee.
 
-def merge_sort(arr):
-    """
-    Sorts an array using the Merge Sort algorithm (recursive).
-    Args:
-        arr (list): List of elements to sort.
-    Returns:
-        list: Sorted list.
-    """
-    if len(arr) <= 1:
-        return arr
-    mid = len(arr) // 2
-    left = merge_sort(arr[:mid])
-    right = merge_sort(arr[mid:])
-    return merge(left, right)
+# Justification:
+# - Binary Search: O(log n) time, fast for sorted lists.
+# - Linear Search: O(n) time, simple for unsorted lists.
+# - Timsort: O(n log n) time, stable and efficient for real-world data.
 
-def merge(left, right):
-    """
-    Merges two sorted lists into one sorted list.
-    Args:
-        left (list): Sorted left half.
-        right (list): Sorted right half.
-    Returns:
-        list: Merged sorted list.
-    """
-    result = []
-    i = j = 0
-    while i < len(left) and j < len(right):
-        if left[i] <= right[j]:
-            result.append(left[i])
-            i += 1
-        else:
-            result.append(right[j])
-            j += 1
-    result.extend(left[i:])
-    result.extend(right[j:])
-    return result
 
+class AppointmentManager:
+    def __init__(self, appointments: List[Dict[str, Any]]):
+        self.appointments = appointments
+
+    def linear_search_by_id(self, appointment_id: str) -> Dict[str, Any]:
+        for appt in self.appointments:
+            if appt['appointment_id'] == appointment_id:
+                return appt
+        return None
+
+    def binary_search_by_id(self, appointment_id: str) -> Dict[str, Any]:
+        # Assumes appointments are sorted by appointment_id
+        ids = [appt['appointment_id'] for appt in self.appointments]
+        idx = bisect.bisect_left(ids, appointment_id)
+        if idx < len(ids) and ids[idx] == appointment_id:
+            return self.appointments[idx]
+        return None
+
+    def sort_by_time(self):
+        self.appointments.sort(key=lambda x: x['appointment_time'])
+
+    def sort_by_fee(self):
+        self.appointments.sort(key=lambda x: x['consultation_fee'])
+
+# Example usage:
 if __name__ == "__main__":
-    # Generate test lists
-    random_list = [random.randint(1, 100) for _ in range(10)]
-    sorted_list = sorted(random_list)
-    reverse_sorted_list = sorted(random_list, reverse=True)
+    appointments = [
+        {'appointment_id': 'A101', 'patient_name': 'John', 'doctor_name': 'Dr. Smith', 'appointment_time': '2024-06-12 10:00', 'consultation_fee': 500},
+        {'appointment_id': 'A102', 'patient_name': 'Alice', 'doctor_name': 'Dr. Jones', 'appointment_time': '2024-06-12 09:00', 'consultation_fee': 300},
+        {'appointment_id': 'A103', 'patient_name': 'Bob', 'doctor_name': 'Dr. Lee', 'appointment_time': '2024-06-12 11:00', 'consultation_fee': 400},
+    ]
 
-    print("Original random list:", random_list)
-    print("Quick Sort:", quick_sort(random_list))
-    print("Merge Sort:", merge_sort(random_list))
+    manager = AppointmentManager(appointments)
 
-    print("\nOriginal sorted list:", sorted_list)
-    print("Quick Sort:", quick_sort(sorted_list))
-    print("Merge Sort:", merge_sort(sorted_list))
+    # Linear search (unsorted)
+    print("Linear Search:", manager.linear_search_by_id('A102'))
 
-    print("\nOriginal reverse-sorted list:", reverse_sorted_list)
-    print("Quick Sort:", quick_sort(reverse_sorted_list))
-    print("Merge Sort:", merge_sort(reverse_sorted_list))
+    # Sort by appointment_id for binary search
+    manager.appointments.sort(key=lambda x: x['appointment_id'])
+    print("Binary Search:", manager.binary_search_by_id('A103'))
 
+    # Sort by time
+    manager.sort_by_time()
+    print("Sorted by Time:", manager.appointments)
 
-
-
+    # Sort by fee
+    manager.sort_by_fee()
+    print("Sorted by Fee:", manager.appointments)
