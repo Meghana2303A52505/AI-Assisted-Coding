@@ -1,53 +1,87 @@
-def merge_sort(arr):
-    """
-    Sorts a list in ascending order using the Merge Sort algorithm.
+"""Write a Python program to implement a Stack.
 
-    Time Complexity: O(n log n), where n is the number of elements in the list.
-    Space Complexity: O(n), due to the use of temporary arrays during merging.
+Requirements:
+- Use list-based implementation
+- Include methods:
+  push(item)
+  pop()
+  peek()
+  is_empty()
 
-    Args:
-        arr (list): The list to be sorted.
+- Add docstrings for each method
+- Handle edge cases (empty stack)
+- Include example usage"""
+class Stack:
+    """A list-based implementation of a Stack data structure."""
+    
+    def __init__(self):
+        """Initialize an empty stack."""
+        self.items = []
+    
+    def push(self, item):
+        """Add an item to the top of the stack.
+        
+        Args:
+            item: The element to add to the stack.
+        """
+        self.items.append(item)
+    
+    def pop(self):
+        """Remove and return the top item from the stack.
+        
+        Returns:
+            The top item of the stack.
+            
+        Raises:
+            IndexError: If the stack is empty.
+        """
+        if self.is_empty():
+            raise IndexError("Cannot pop from an empty stack")
+        return self.items.pop()
+    
+    def peek(self):
+        """Return the top item without removing it.
+        
+        Returns:
+            The top item of the stack.
+            
+        Raises:
+            IndexError: If the stack is empty.
+        """
+        if self.is_empty():
+            raise IndexError("Cannot peek at an empty stack")
+        return self.items[-1]
+    
+    def is_empty(self):
+        """Check if the stack is empty.
+        
+        Returns:
+            True if stack is empty, False otherwise.
+        """
+        return len(self.items) == 0
 
-    Returns:
-        list: A new sorted list.
-    """
-    if len(arr) <= 1:
-        return arr
 
-    mid = len(arr) // 2
-    left = merge_sort(arr[:mid])
-    right = merge_sort(arr[mid:])
-
-    return merge(left, right)
-
-def merge(left, right):
-    result = []
-    i = j = 0
-
-    while i < len(left) and j < len(right):
-        if left[i] <= right[j]:
-            result.append(left[i])
-            i += 1
-        else:
-            result.append(right[j])
-            j += 1
-
-    result.extend(left[i:])
-    result.extend(right[j:])
-    return result
-
-# Test cases
+# Example usage
 if __name__ == "__main__":
-    test_cases = [
-        [],
-        [1],
-        [5, 2, 9, 1, 5, 6],
-        [3, 2, 1],
-        [1, 2, 3, 4, 5],
-        [5, 4, 3, 2, 1],
-        [7, 7, 7, 7],
-    ]
-
-    for idx, case in enumerate(test_cases):
-        sorted_case = merge_sort(case)
-        print(f"Test case {idx+1}: Input: {case} -> Sorted: {sorted_case}")
+    stack = Stack()
+    
+    print("Pushing elements: 10, 20, 30")
+    stack.push(10)
+    stack.push(20)
+    stack.push(30)
+    
+    print(f"Peek: {stack.peek()}")  # Output: 30
+    print(f"Is empty: {stack.is_empty()}")  # Output: False
+    
+    print(f"Popping: {stack.pop()}")  # Output: 30
+    print(f"Popping: {stack.pop()}")  # Output: 20
+    
+    print(f"Peek: {stack.peek()}")  # Output: 10
+    print(f"Popping: {stack.pop()}")  # Output: 10
+    print(f"Is empty: {stack.is_empty()}")  # Output: True
+    
+    # Handle edge case
+    try:
+        stack.pop()
+    except IndexError as e:
+        print(f"Error: {e}")

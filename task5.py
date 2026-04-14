@@ -1,49 +1,57 @@
-from datetime import datetime
-from typing import List, Dict, Optional
+"""Write a Python program to implement a Graph using adjacency list.
 
-# Data structure for allocation details
-class Allocation:
-    def __init__(self, student_id: str, room_number: int, floor: int, allocation_date: str):
-        self.student_id = student_id
-        self.room_number = room_number
-        self.floor = floor
-        self.allocation_date = datetime.strptime(allocation_date, "%Y-%m-%d")
+Requirements:
+- Methods:
+  add_vertex(vertex)
+  add_edge(v1, v2)
+  display()
 
-    def __repr__(self):
-        return (f"Allocation(student_id={self.student_id}, room_number={self.room_number}, "
-                f"floor={self.floor}, allocation_date={self.allocation_date.date()})")
-
-# Optimized search: Use a dictionary for O(1) lookup by student_id
-class HostelManagementSystem:
+- Use dictionary for adjacency list
+- Add comments and example graph"""
+class Graph:
+    """A simple graph implementation using adjacency list"""
+    
     def __init__(self):
-        self.allocations: List[Allocation] = []
-        self.student_index: Dict[str, Allocation] = {}
+        """Initialize an empty graph using a dictionary"""
+        self.graph = {}
+    
+    def add_vertex(self, vertex):
+        """Add a vertex to the graph"""
+        if vertex not in self.graph:
+            self.graph[vertex] = []
+    
+    def add_edge(self, v1, v2):
+        """Add an edge between two vertices (undirected)"""
+        if v1 not in self.graph:
+            self.add_vertex(v1)
+        if v2 not in self.graph:
+            self.add_vertex(v2)
+        
+        self.graph[v1].append(v2)
+        self.graph[v2].append(v1)
+    
+    def display(self):
+        """Display the graph adjacency list"""
+        print("Graph Adjacency List:")
+        for vertex, neighbors in self.graph.items():
+            print(f"{vertex} -> {neighbors}")
 
-    def add_allocation(self, allocation: Allocation):
-        self.allocations.append(allocation)
-        self.student_index[allocation.student_id] = allocation
-
-    def search_by_student_id(self, student_id: str) -> Optional[Allocation]:
-        return self.student_index.get(student_id)
-
-    # Optimized sort: Use Python's built-in Timsort (sorted()), which is stable and efficient
-    def sort_by_room_number(self) -> List[Allocation]:
-        return sorted(self.allocations, key=lambda x: x.room_number)
-
-    def sort_by_allocation_date(self) -> List[Allocation]:
-        return sorted(self.allocations, key=lambda x: x.allocation_date)
-
-# Justification:
-# - Dictionary indexing allows O(1) search for student_id.
-# - Python's sorted() uses Timsort, which is O(n log n) and stable, ideal for sorting records.
 
 # Example usage
 if __name__ == "__main__":
-    hms = HostelManagementSystem()
-    hms.add_allocation(Allocation("S001", 101, 1, "2024-06-01"))
-    hms.add_allocation(Allocation("S002", 102, 1, "2024-06-03"))
-    hms.add_allocation(Allocation("S003", 201, 2, "2024-06-02"))
-
-    print("Search by student ID S002:", hms.search_by_student_id("S002"))
-    print("Sorted by room number:", hms.sort_by_room_number())
-    print("Sorted by allocation date:", hms.sort_by_allocation_date())
+    g = Graph()
+    
+    # Add vertices
+    g.add_vertex("A")
+    g.add_vertex("B")
+    g.add_vertex("C")
+    g.add_vertex("D")
+    
+    # Add edges
+    g.add_edge("A", "B")
+    g.add_edge("A", "C")
+    g.add_edge("B", "D")
+    g.add_edge("C", "D")
+    
+    # Display graph
+    g.display()

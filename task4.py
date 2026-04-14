@@ -1,52 +1,86 @@
-from datetime import datetime
+"""Write a Python program to implement a Hash Table using chaining.
 
-class Booking:
-    def __init__(self, ticket_id, passenger_name, train_number, seat_number, travel_date):
-        self.ticket_id = ticket_id
-        self.passenger_name = passenger_name
-        self.train_number = train_number
-        self.seat_number = seat_number
-        self.travel_date = datetime.strptime(travel_date, "%Y-%m-%d")
+Requirements:
+- Use list of lists
+- Include:
+  insert(key, value)
+  search(key)
+  delete(key)
 
-    def __repr__(self):
-        return (f"Booking(ticket_id={self.ticket_id}, passenger_name={self.passenger_name}, "
-                f"train_number={self.train_number}, seat_number={self.seat_number}, "
-                f"travel_date={self.travel_date.strftime('%Y-%m-%d')})")
+- Handle collisions using chaining
+- Add comments and test cases"""
+class HashTable:
+    """Hash table implementation using chaining to handle collisions."""
+    
+    def __init__(self, size=10):
+        """Initialize hash table with given size."""
+        self.size = size
+        self.table = [[] for _ in range(size)]
+    
+    def _hash(self, key):
+        """Generate hash value for a given key."""
+        return hash(key) % self.size
+    
+    def insert(self, key, value):
+        """Insert a key-value pair into the hash table."""
+        index = self._hash(key)
+        # Check if key already exists and update it
+        for i, (k, v) in enumerate(self.table[index]):
+            if k == key:
+                self.table[index][i] = (key, value)
+                return
+        # Add new key-value pair to the chain
+        self.table[index].append((key, value))
+    
+    def search(self, key):
+        """Search for a key and return its value, or None if not found."""
+        index = self._hash(key)
+        for k, v in self.table[index]:
+            if k == key:
+                return v
+        return None
+    
+    def delete(self, key):
+        """Delete a key-value pair from the hash table."""
+        index = self._hash(key)
+        for i, (k, v) in enumerate(self.table[index]):
+            if k == key:
+                self.table[index].pop(i)
+                return True
+        return False
+    
+    def display(self):
+        """Display the hash table."""
+        for i, chain in enumerate(self.table):
+            print(f"Index {i}: {chain}")
 
-class RailwayReservationSystem:
-    def __init__(self):
-        self.bookings = []
-        self.ticket_index = {}
 
-    def add_booking(self, booking):
-        self.bookings.append(booking)
-        self.ticket_index[booking.ticket_id] = booking
-
-    # Efficient search: Hash table (dictionary) lookup for ticket ID (O(1) time)
-    def search_ticket(self, ticket_id):
-        return self.ticket_index.get(ticket_id, None)
-
-    # Efficient sort: Python's built-in sort (Timsort, O(n log n)), stable and fast
-    def sort_bookings_by_date(self):
-        self.bookings.sort(key=lambda b: b.travel_date)
-
-    def sort_bookings_by_seat(self):
-        self.bookings.sort(key=lambda b: b.seat_number)
-
-# Example usage
+# Test cases
 if __name__ == "__main__":
-    system = RailwayReservationSystem()
-    system.add_booking(Booking("T001", "Alice", "12345", 12, "2024-07-01"))
-    system.add_booking(Booking("T002", "Bob", "12345", 5, "2024-06-30"))
-    system.add_booking(Booking("T003", "Charlie", "54321", 8, "2024-07-02"))
-
-    # Search
-    print("Search T002:", system.search_ticket("T002"))
-
-    # Sort by date
-    system.sort_bookings_by_date()
-    print("Sorted by date:", system.bookings)
-
-    # Sort by seat number
-    system.sort_bookings_by_seat()
-    print("Sorted by seat:", system.bookings)
+    ht = HashTable(5)
+    
+    # Test insert
+    print("--- Testing Insert ---")
+    ht.insert("name", "Alice")
+    ht.insert("age", 25)
+    ht.insert("city", "NYC")
+    ht.insert("country", "USA")
+    ht.insert("job", "Engineer")
+    ht.display()
+    
+    # Test search
+    print("\n--- Testing Search ---")
+    print(f"Search 'name': {ht.search('name')}")
+    print(f"Search 'age': {ht.search('age')}")
+    print(f"Search 'unknown': {ht.search('unknown')}")
+    
+    # Test delete
+    print("\n--- Testing Delete ---")
+    ht.delete("age")
+    print(f"After deleting 'age': {ht.search('age')}")
+    ht.display()
+    
+    # Test update
+    print("\n--- Testing Update ---")
+    ht.insert("name", "Bob")
+    print(f"Updated 'name': {ht.search('name')}")

@@ -1,93 +1,65 @@
-'''You are provided with a poorly structured Library Management script that:
-•	Contains repeated conditional logic
-•	Does not use reusable functions
-•	Lacks documentation
-•	Uses print-based procedural execution
-•	Does not follow modular programming principles
-Your task is to refactor the code into a proper format 
-1.	Create a module library.py with functions:
-o	add_book(title, author, isbn)
-o	remove_book(isbn)
-o	search_book(isbn)
-2.	Insert triple quotes under each function and let Copilot complete the docstrings.
-3.	Generate documentation in the terminal.
-4.	Export the documentation in HTML format.
-5.	Open the file in a browser.
-'''
+import heapq
+from enum import Enum
 
-# Library Management System (Unstructured Version)
-# This code needs refactoring into a proper module with documentation.
-library_db = {}
-# Adding first book
-title = "Python Basics"
-author = "John Doe"
-isbn = "101"
 
-if isbn not in library_db:
-    library_db[isbn] = {"title": title, "author": author}
-    print("Book added successfully.")
-else:
-    print("Book already exists.")
+"""Choose appropriate data structures and justify:
 
-# Adding second book (duplicate logic)
-title = "AI Fundamentals"
-author = "Jane Smith"
-isbn = "102"
+1. Traffic Signal Queue
+2. Emergency Vehicle Priority
+3. Vehicle Registration Lookup
+4. Road Network Mapping
+5. Parking Slot Tracking
 
-if isbn not in library_db:
-    library_db[isbn] = {"title": title, "author": author}
-    print("Book added successfully.")
-else:
-    print("Book already exists.")
+Output as table with justification
+Write a Python program for Emergency Vehicle Priority using Priority Queue.
 
-# Searching book (repeated logic structure)
-isbn = "101"
-if isbn in library_db:
-    print("Book Found:", library_db[isbn])
-else:
-    print("Book not found.")
+Requirements:
+- Ambulances highest priority
+- Include:
+  add_vehicle(type, priority)
+  process_vehicle()
 
-# Removing book (again repeated pattern)
-isbn = "101"
-if isbn in library_db:
-    del library_db[isbn]
-    print("Book removed successfully.")
-else:
-    print("Book not found.")
+- Use heapq"""
 
-# Searching again
-isbn = "101"
-if isbn in library_db:
-    print("Book Found:", library_db[isbn])
-else:
-    print("Book not found.")
+class VehicleType(Enum):
+    AMBULANCE = 1
+    FIRE_TRUCK = 2
+    POLICE = 3
+    REGULAR = 4
 
-# Refactored Code:
-# library.py
-library_db = {}
-def add_book(title, author, isbn):
-    """Add a book to the library database."""
-    if isbn not in library_db:
-        library_db[isbn] = {"title": title, "author": author}
-        print("Book added successfully.")
-    else:
-        print("Book already exists.")
-def remove_book(isbn):
-    """Remove a book from the library database."""
-    if isbn in library_db:
-        del library_db[isbn]
-        print("Book removed successfully.")
-    else:
-        print("Book not found.")
-def search_book(isbn):
-    """Search for a book in the library database."""
-    if isbn in library_db:
-        print("Book Found:", library_db[isbn])
-    else:
-        print("Book not found.")
-if __name__ == "__main__":
-    add_book("Python Basics", "John Doe", "101")
-    add_book("AI Fundamentals", "Jane Smith", "102")
-    search_book("101")
-    remove_book("101")
-    search_book("101")
+class EmergencyVehicleQueue:
+    def __init__(self):
+        self.queue = []
+        self.vehicle_count = 0
+    
+    def add_vehicle(self, vehicle_type, priority=None):
+        if priority is None:
+            priority = vehicle_type.value
+        self.vehicle_count += 1
+        heapq.heappush(self.queue, (priority, self.vehicle_count, vehicle_type.name))
+    
+    def process_vehicle(self):
+        if not self.queue:
+            return None
+        priority, count, vehicle_type = heapq.heappop(self.queue)
+        return f"Processing {vehicle_type} (Priority: {priority})"
+
+# Data structures justification
+data_structures = [
+    ["Traffic Signal Queue", "Queue (FIFO)", "Vehicles arrive in order, first come first served"],
+    ["Emergency Vehicle Priority", "Priority Queue (Min Heap)", "Process ambulances/fire trucks before regular traffic"],
+    ["Vehicle Registration Lookup", "Dictionary/Hash Map", "O(1) lookup by registration number"],
+    ["Road Network Mapping", "Graph (Adjacency List)", "Represent intersections and roads efficiently"],
+    ["Parking Slot Tracking", "Set/Hash Set", "Quick check for available slots, O(1) operations"]
+]
+
+print("\n--- Emergency Vehicle Priority System ---\n")
+
+queue = EmergencyVehicleQueue()
+queue.add_vehicle(VehicleType.AMBULANCE, 1)
+queue.add_vehicle(VehicleType.REGULAR, 4)
+queue.add_vehicle(VehicleType.FIRE_TRUCK, 2)
+queue.add_vehicle(VehicleType.POLICE, 3)
+
+while queue.queue:
+    print(queue.process_vehicle())
