@@ -1,57 +1,105 @@
-"""Write a Python program to implement a Graph using adjacency list.
+import requests
+import time
+from typing import Dict, Optional
 
-Requirements:
-- Methods:
-  add_vertex(vertex)
-  add_edge(v1, v2)
-  display()
+# Using disease.sh API (free, no authentication required)
+BASE_URL = "https://disease.sh/v3/covid-19/countries"
 
-- Use dictionary for adjacency list
-- Add comments and example graph"""
-class Graph:
-    """A simple graph implementation using adjacency list"""
+def fetch_covid_data(country_name: str, max_retries: int = 3) -> Optional[Dict]:
+    """
+    Fetch COVID-19 statistics for a specific country.
     
-    def __init__(self):
-        """Initialize an empty graph using a dictionary"""
-        self.graph = {}
+    Args:
+        country_name: Name of the country
+        max_retries: Maximum number of retry attempts
     
-    def add_vertex(self, vertex):
-        """Add a vertex to the graph"""
-        if vertex not in self.graph:
-            self.graph[vertex] = []
+    Returns:
+        Dictionary with COVID statistics or None if failed
+    """
     
-    def add_edge(self, v1, v2):
-        """Add an edge between two vertices (undirected)"""
-        if v1 not in self.graph:
-            self.add_vertex(v1)
-        if v2 not in self.graph:
-            self.add_vertex(v2)
+    for attempt in range(max_retries):
+        try:
+            # Make API request
+            response = requests.get(f"{BASE_URL}/{country_name}", timeout=10)
+            
+            # Handle rate limiting
+            if response.status_code == 429:
+                wait_time = int(response.headers.get('Retry-After', 60))
+                print(f"Rate limit exceeded. Waiting {wait_time} seconds...")
+                time.sleep(wait_time)
+                continue
+            
+            # Handle not found
+            if response.status_code == 404:
+                print(f"Error: Country '{country_name}' not found.")
+                return None
+            
+            # Handle other HTTP errors
+            response.raise_for_status()
+            
+            data = response.json()
+            return data
         
-        self.graph[v1].append(v2)
-        self.graph[v2].append(v1)
+        except requests.exceptions.Timeout:
+            print(f"Timeout error (attempt {attempt + 1}/{max_retries}). Retrying...")
+            time.sleep(2 ** attempt)  # Exponential backoff
+        
+        except requests.exceptions.ConnectionError:
+            print(f"Connection error (attempt {attempt + 1}/{max_retries}). Retrying...")
+            time.sleep(2 ** attempt)
+        
+        except requests.exceptions.HTTPError as e:
+            print(f"HTTP Error: {e}")
+            return None
+        
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}")
+            return None
     
-    def display(self):
-        """Display the graph adjacency list"""
-        print("Graph Adjacency List:")
-        for vertex, neighbors in self.graph.items():
-            print(f"{vertex} -> {neighbors}")
+    print("Failed after maximum retries.")
+    return None
 
 
-# Example usage
+def display_covid_stats(data: Dict) -> None:
+    """Display COVID-19 statistics in a readable format."""
+    
+    print("\n" + "="*50)
+    print(f"COVID-19 Statistics for {data['country']}")
+    print("="*50)
+    print(f"Total Confirmed Cases: {data['cases']:,}")
+    print(f"Total Deaths: {data['deaths']:,}")
+    print(f"Total Recovered: {data['recovered']:,}")
+    print(f"Active Cases: {data['active']:,}")
+    print(f"Cases per Million: {data['casesPerOneMillion']:,}")
+    print(f"Deaths per Million: {data['deathsPerOneMillion']:,}")
+    print("="*50 + "\n")
+
+
+def main():
+    """Main function to run the COVID-19 data fetcher."""
+    
+    print("COVID-19 Statistics Fetcher")
+    print("-" * 50)
+    
+    while True:
+        country = input("Enter country name (or 'exit' to quit): ").strip()
+        
+        if country.lower() == 'exit':
+            print("Goodbye!")
+            break
+        
+        if not country:
+            print("Please enter a valid country name.\n")
+            continue
+        
+        print("Fetching data...")
+        data = fetch_covid_data(country)
+        
+        if data:
+            display_covid_stats(data)
+        else:
+            print("Could not fetch data. Please try again.\n")
+
+
 if __name__ == "__main__":
-    g = Graph()
-    
-    # Add vertices
-    g.add_vertex("A")
-    g.add_vertex("B")
-    g.add_vertex("C")
-    g.add_vertex("D")
-    
-    # Add edges
-    g.add_edge("A", "B")
-    g.add_edge("A", "C")
-    g.add_edge("B", "D")
-    g.add_edge("C", "D")
-    
-    # Display graph
-    g.display()
+    main()

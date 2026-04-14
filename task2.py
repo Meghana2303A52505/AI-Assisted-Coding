@@ -1,74 +1,87 @@
-"""Write a Python program to implement a Queue using lists.
+import requests
+import sys
+from datetime import datetime
 
-Requirements:
-- Follow FIFO principle
-- Include:
-  enqueue(item)
-  dequeue()
-  peek()
-  size()
-
-- Handle empty queue cases
-- Add comments and test cases"""
-class Queue:
-    """A Queue implementation using lists following FIFO principle."""
-    
+class CurrencyConverter:
     def __init__(self):
-        """Initialize an empty queue."""
-        self.items = []
+        self.api_url = "https://api.exchangerate-api.com/v4/latest"
+        self.target_currencies = ["USD", "EUR", "GBP"]
+        self.timeout = 5
     
-    def enqueue(self, item):
-        """Add an item to the rear of the queue."""
-        self.items.append(item)
+    def validate_amount(self, amount):
+        """Validate user input for amount"""
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                raise ValueError("Amount must be greater than 0")
+            return amount
+        except ValueError as e:
+            raise ValueError(f"Invalid amount: {e}")
     
-    def dequeue(self):
-        """Remove and return the front item from the queue."""
-        if self.is_empty():
-            raise IndexError("Cannot dequeue from an empty queue")
-        return self.items.pop(0)
+    def fetch_exchange_rates(self):
+        """Fetch exchange rates from API"""
+        try:
+            response = requests.get(
+                f"{self.api_url}/INR",
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.Timeout:
+            raise Exception("API request timed out. Please try again later.")
+        except requests.exceptions.ConnectionError:
+            raise Exception("Connection error. Check your internet connection.")
+        except requests.exceptions.HTTPError as e:
+            raise Exception(f"API error: {e.response.status_code}")
+        except Exception as e:
+            raise Exception(f"Failed to fetch rates: {str(e)}")
     
-    def peek(self):
-        """Return the front item without removing it."""
-        if self.is_empty():
-            raise IndexError("Cannot peek at an empty queue")
-        return self.items[0]
+    def convert_currency(self, amount, rates):
+        """Convert INR to target currencies"""
+        conversions = []
+        for currency in self.target_currencies:
+            if currency in rates["rates"]:
+                converted = amount * rates["rates"][currency]
+                conversions.append({
+                    "From": "INR",
+                    "To": currency,
+                    "Amount": f"₹{amount:.2f}",
+                    "Converted": f"{converted:.2f}",
+                    "Rate": f"1 INR = {rates['rates'][currency]:.4f} {currency}"
+                })
+        return conversions
     
-    def size(self):
-        """Return the number of items in the queue."""
-        return len(self.items)
-    
-    def is_empty(self):
-        """Check if the queue is empty."""
-        return len(self.items) == 0
+    def display_results(self, conversions):
+        """Display conversion results in tabular format"""
+        if conversions:
+            print(f"Currency Conversion Report - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')},amt: {conversions[0]['Amount']}")
 
+        else:
+            print("No conversions available.")
+    
+    def run(self):
+        """Main execution method"""
+        try:
+            # Get user input
+            amount_input = input("Enter amount in INR: ").strip()
+            amount = self.validate_amount(amount_input)
+            
+            print("\nFetching exchange rates...")
+            
+            # Fetch rates
+            rates = self.fetch_exchange_rates()
+            
+            # Convert and display
+            conversions = self.convert_currency(amount, rates)
+            self.display_results(conversions)
+            
+        except ValueError as ve:
+            print(f"❌ Validation Error: {ve}")
+            sys.exit(1)
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            sys.exit(1)
 
-# Test cases
 if __name__ == "__main__":
-    q = Queue()
-    
-    # Test enqueue
-    q.enqueue(10)
-    q.enqueue(20)
-    q.enqueue(30)
-    print(f"Queue size after enqueuing 3 items: {q.size()}")  # Output: 3
-    
-    # Test peek
-    print(f"Front item (peek): {q.peek()}")  # Output: 10
-    
-    # Test dequeue
-    print(f"Dequeued item: {q.dequeue()}")  # Output: 10
-    print(f"Queue size after dequeue: {q.size()}")  # Output: 2
-    
-    # Test with remaining items
-    print(f"Next front item: {q.peek()}")  # Output: 20
-    
-    # Empty the queue
-    q.dequeue()
-    q.dequeue()
-    print(f"Queue empty: {q.is_empty()}")  # Output: True
-    
-    # Test error handling
-    try:
-        q.dequeue()
-    except IndexError as e:
-        print(f"Error caught: {e}")
+    converter = CurrencyConverter()
+    converter.run()

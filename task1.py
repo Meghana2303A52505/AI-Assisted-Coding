@@ -1,87 +1,123 @@
-"""Write a Python program to implement a Stack.
+import requests
+import json
+from typing import Optional, Dict, Any
 
-Requirements:
-- Use list-based implementation
-- Include methods:
-  push(item)
-  pop()
-  peek()
-  is_empty()
-
-- Add docstrings for each method
-- Handle edge cases (empty stack)
-- Include example usage"""
-class Stack:
-    """A list-based implementation of a Stack data structure."""
+class PublicTransportFareAPI:
+    """Retrieve public transport fare details between two stations."""
     
-    def __init__(self):
-        """Initialize an empty stack."""
-        self.items = []
+    def __init__(self, api_key: str = "demo"):
+        self.base_url = "https://api.example.com/transport"
+        self.api_key = api_key
+        self.timeout = 10
     
-    def push(self, item):
-        """Add an item to the top of the stack.
+    def validate_station(self, station: str) -> bool:
+        """Validate station name format."""
+        if not station or not isinstance(station, str):
+            return False
+        if len(station.strip()) < 2:
+            return False
+        return True
+    
+    def get_fare_details(self, source: str, destination: str) -> Optional[Dict[str, Any]]:
+        """
+        Retrieve fare details between two stations.
         
         Args:
-            item: The element to add to the stack.
-        """
-        self.items.append(item)
-    
-    def pop(self):
-        """Remove and return the top item from the stack.
-        
-        Returns:
-            The top item of the stack.
+            source: Starting station name
+            destination: Ending station name
             
-        Raises:
-            IndexError: If the stack is empty.
-        """
-        if self.is_empty():
-            raise IndexError("Cannot pop from an empty stack")
-        return self.items.pop()
-    
-    def peek(self):
-        """Return the top item without removing it.
-        
         Returns:
-            The top item of the stack.
+            Dictionary with fare details or None on error
+        """
+        # Validate inputs
+        if not self.validate_station(source):
+            print("❌ Error: Invalid source station. Min 2 characters required.")
+            return None
+        
+        if not self.validate_station(destination):
+            print("❌ Error: Invalid destination station. Min 2 characters required.")
+            return None
+        
+        if source.lower() == destination.lower():
+            print("❌ Error: Source and destination cannot be the same.")
+            return None
+        
+        try:
+            params = {
+                "source": source.strip(),
+                "destination": destination.strip(),
+                "api_key": self.api_key
+            }
             
-        Raises:
-            IndexError: If the stack is empty.
-        """
-        if self.is_empty():
-            raise IndexError("Cannot peek at an empty stack")
-        return self.items[-1]
+            # Make API request with timeout
+            response = requests.get(
+                f"{self.base_url}/fare",
+                params=params,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            
+            data = response.json()
+            
+            # Validate API response
+            if not data or "fare" not in data:
+                print("❌ Error: Invalid station names or route not available.")
+                return None
+            
+            return data
+            
+        except requests.exceptions.Timeout:
+            print(f"❌ Error: API request timed out after {self.timeout} seconds.")
+            return None
+        except requests.exceptions.ConnectionError:
+            print("❌ Error: Cannot connect to API. Service may be unavailable.")
+            return None
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 404:
+                print("❌ Error: Station not found or invalid route.")
+            else:
+                print(f"❌ Error: API returned status code {e.response.status_code}")
+            return None
+        except json.JSONDecodeError:
+            print("❌ Error: Invalid API response format.")
+            return None
+        except Exception as e:
+            print(f"❌ Unexpected error: {str(e)}")
+            return None
     
-    def is_empty(self):
-        """Check if the stack is empty.
+    def display_fare_details(self, fare_data: Dict[str, Any]) -> None:
+        """Display fare details in structured format."""
+        if not fare_data:
+            return
         
-        Returns:
-            True if stack is empty, False otherwise.
-        """
-        return len(self.items) == 0
+        print("\n" + "="*50)
+        print("🚌 FARE DETAILS")
+        print("="*50)
+        print(f"Source:           {fare_data.get('source', 'warangal')}")
+        print(f"Destination:      {fare_data.get('destination', 'hyderabad')}")
+        print(f"Distance:         {fare_data.get('distance', '5000')} km")
+        print(f"Base Fare:        ${fare_data.get('fare', '1000')}")
+        print(f"Duration:         {fare_data.get('duration', '1000')} mins")
+        print(f"Vehicle Type:     {fare_data.get('vehicle_type', 'car')}")
+        print("="*50 + "\n")
 
 
-# Example usage
+def main():
+    """Main function to demonstrate fare lookup."""
+    api = PublicTransportFareAPI()
+    
+    print("🚌 Public Transport Fare Finder\n")
+    
+    source = input("Enter source station: ").strip()
+    destination = input("Enter destination station: ").strip()
+    
+    fare_details = api.get_fare_details(source, destination)
+    
+    if fare_details:
+        api.display_fare_details(fare_details)
+    else:
+        print("\n⚠️ Unable to retrieve fare details. Please try again.")
+
+
 if __name__ == "__main__":
-    stack = Stack()
-    
-    print("Pushing elements: 10, 20, 30")
-    stack.push(10)
-    stack.push(20)
-    stack.push(30)
-    
-    print(f"Peek: {stack.peek()}")  # Output: 30
-    print(f"Is empty: {stack.is_empty()}")  # Output: False
-    
-    print(f"Popping: {stack.pop()}")  # Output: 30
-    print(f"Popping: {stack.pop()}")  # Output: 20
-    
-    print(f"Peek: {stack.peek()}")  # Output: 10
-    print(f"Popping: {stack.pop()}")  # Output: 10
-    print(f"Is empty: {stack.is_empty()}")  # Output: True
-    
-    # Handle edge case
-    try:
-        stack.pop()
-    except IndexError as e:
-        print(f"Error: {e}")
+    main()
