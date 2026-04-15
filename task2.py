@@ -1,87 +1,118 @@
-import requests
-import sys
-from datetime import datetime
-
-class CurrencyConverter:
-    def __init__(self):
-        self.api_url = "https://api.exchangerate-api.com/v4/latest"
-        self.target_currencies = ["USD", "EUR", "GBP"]
-        self.timeout = 5
+class Student:
+    def __init__(self, name, math_score, science_score):
+        self.__name = name
+        self.__math_score = math_score
+        self.__science_score = science_score
     
-    def validate_amount(self, amount):
-        """Validate user input for amount"""
-        try:
-            amount = float(amount)
-            if amount <= 0:
-                raise ValueError("Amount must be greater than 0")
-            return amount
-        except ValueError as e:
-            raise ValueError(f"Invalid amount: {e}")
+    # Getter methods
+    def get_name(self):
+        return self.__name
     
-    def fetch_exchange_rates(self):
-        """Fetch exchange rates from API"""
-        try:
-            response = requests.get(
-                f"{self.api_url}/INR",
-                timeout=self.timeout
-            )
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.Timeout:
-            raise Exception("API request timed out. Please try again later.")
-        except requests.exceptions.ConnectionError:
-            raise Exception("Connection error. Check your internet connection.")
-        except requests.exceptions.HTTPError as e:
-            raise Exception(f"API error: {e.response.status_code}")
-        except Exception as e:
-            raise Exception(f"Failed to fetch rates: {str(e)}")
+    def get_math_score(self):
+        return self.__math_score
     
-    def convert_currency(self, amount, rates):
-        """Convert INR to target currencies"""
-        conversions = []
-        for currency in self.target_currencies:
-            if currency in rates["rates"]:
-                converted = amount * rates["rates"][currency]
-                conversions.append({
-                    "From": "INR",
-                    "To": currency,
-                    "Amount": f"₹{amount:.2f}",
-                    "Converted": f"{converted:.2f}",
-                    "Rate": f"1 INR = {rates['rates'][currency]:.4f} {currency}"
-                })
-        return conversions
+    def get_science_score(self):
+        return self.__science_score
     
-    def display_results(self, conversions):
-        """Display conversion results in tabular format"""
-        if conversions:
-            print(f"Currency Conversion Report - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')},amt: {conversions[0]['Amount']}")
-
+    # Setter methods
+    def set_name(self, name):
+        self.__name = name
+    
+    def set_math_score(self, score):
+        if 0 <= score <= 100:
+            self.__math_score = score
         else:
-            print("No conversions available.")
+            raise ValueError("Score must be between 0 and 100")
     
-    def run(self):
-        """Main execution method"""
-        try:
-            # Get user input
-            amount_input = input("Enter amount in INR: ").strip()
-            amount = self.validate_amount(amount_input)
-            
-            print("\nFetching exchange rates...")
-            
-            # Fetch rates
-            rates = self.fetch_exchange_rates()
-            
-            # Convert and display
-            conversions = self.convert_currency(amount, rates)
-            self.display_results(conversions)
-            
-        except ValueError as ve:
-            print(f"❌ Validation Error: {ve}")
-            sys.exit(1)
-        except Exception as e:
-            print(f"❌ Error: {e}")
-            sys.exit(1)
+    def set_science_score(self, score):
+        if 0 <= score <= 100:
+            self.__science_score = score
+        else:
+            raise ValueError("Score must be between 0 and 100")
+    
+    # Derived value calculation
+    def calculate_average(self):
+        return (self.__math_score + self.__science_score) / 2
 
-if __name__ == "__main__":
-    converter = CurrencyConverter()
-    converter.run()
+
+# Example usage
+student = Student("Alice", 85, 90)
+print(f"Name: {student.get_name()}")
+print(f"Average Score: {student.calculate_average()}")
+
+student.set_math_score(92)
+print(f"Updated Average Score: {student.calculate_average()}")
+
+#convert the python class into a C++ class with proper access modifiers and constructor handling and correct data types
+#include <iostream>
+#include <string>
+#include <stdexcept>
+
+class Student {
+private:
+    std::string name;
+    int math_score;
+    int science_score;
+    
+    bool isValidScore(int score) const {
+        return score >= 0 && score <= 100;
+    }
+
+public:
+    // Constructor
+    Student(const std::string& n, int math, int science) 
+        : name(n), math_score(math), science_score(science) {
+        if (!isValidScore(math) || !isValidScore(science)) {
+            throw std::invalid_argument("Score must be between 0 and 100");
+        }
+    }
+    
+    // Getter methods
+    std::string getName() const {
+        return name;
+    }
+    
+    int getMathScore() const {
+        return math_score;
+    }
+    
+    int getScienceScore() const {
+        return science_score;
+    }
+    
+    // Setter methods
+    void setName(const std::string& n) {
+        name = n;
+    }
+    
+    void setMathScore(int score) {
+        if (!isValidScore(score)) {
+            throw std::invalid_argument("Score must be between 0 and 100");
+        }
+        math_score = score;
+    }
+    
+    void setScienceScore(int score) {
+        if (!isValidScore(score)) {
+            throw std::invalid_argument("Score must be between 0 and 100");
+        }
+        science_score = score;
+    }
+    
+    // Derived value calculation
+    double calculateAverage() const {
+        return (math_score + science_score) / 2.0;
+    }
+};
+
+// Example usage
+int main() {
+    Student student("Alice", 85, 90);
+    std::cout << "Name: " << student.getName() << std::endl;
+    std::cout << "Average Score: " << student.calculateAverage() << std::endl;
+    
+    student.setMathScore(92);
+    std::cout << "Updated Average Score: " << student.calculateAverage() << std::endl;
+    
+    return 0;
+}

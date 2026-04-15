@@ -1,105 +1,110 @@
-import requests
-import time
-from typing import Dict, Optional
-
-# Using disease.sh API (free, no authentication required)
-BASE_URL = "https://disease.sh/v3/covid-19/countries"
-
-def fetch_covid_data(country_name: str, max_retries: int = 3) -> Optional[Dict]:
+def binary_search(arr, target):
     """
-    Fetch COVID-19 statistics for a specific country.
+    Performs binary search on a sorted array.
     
     Args:
-        country_name: Name of the country
-        max_retries: Maximum number of retry attempts
+        arr: Sorted list of elements
+        target: Element to search for
     
     Returns:
-        Dictionary with COVID statistics or None if failed
+        Index of target if found, otherwise -1
     """
+    left, right = 0, len(arr) - 1
     
-    for attempt in range(max_retries):
-        try:
-            # Make API request
-            response = requests.get(f"{BASE_URL}/{country_name}", timeout=10)
-            
-            # Handle rate limiting
-            if response.status_code == 429:
-                wait_time = int(response.headers.get('Retry-After', 60))
-                print(f"Rate limit exceeded. Waiting {wait_time} seconds...")
-                time.sleep(wait_time)
-                continue
-            
-            # Handle not found
-            if response.status_code == 404:
-                print(f"Error: Country '{country_name}' not found.")
-                return None
-            
-            # Handle other HTTP errors
-            response.raise_for_status()
-            
-            data = response.json()
-            return data
+    while left <= right:
+        mid = (left + right) // 2
         
-        except requests.exceptions.Timeout:
-            print(f"Timeout error (attempt {attempt + 1}/{max_retries}). Retrying...")
-            time.sleep(2 ** attempt)  # Exponential backoff
-        
-        except requests.exceptions.ConnectionError:
-            print(f"Connection error (attempt {attempt + 1}/{max_retries}). Retrying...")
-            time.sleep(2 ** attempt)
-        
-        except requests.exceptions.HTTPError as e:
-            print(f"HTTP Error: {e}")
-            return None
-        
-        except requests.exceptions.RequestException as e:
-            print(f"Request error: {e}")
-            return None
-    
-    print("Failed after maximum retries.")
-    return None
-
-
-def display_covid_stats(data: Dict) -> None:
-    """Display COVID-19 statistics in a readable format."""
-    
-    print("\n" + "="*50)
-    print(f"COVID-19 Statistics for {data['country']}")
-    print("="*50)
-    print(f"Total Confirmed Cases: {data['cases']:,}")
-    print(f"Total Deaths: {data['deaths']:,}")
-    print(f"Total Recovered: {data['recovered']:,}")
-    print(f"Active Cases: {data['active']:,}")
-    print(f"Cases per Million: {data['casesPerOneMillion']:,}")
-    print(f"Deaths per Million: {data['deathsPerOneMillion']:,}")
-    print("="*50 + "\n")
-
-
-def main():
-    """Main function to run the COVID-19 data fetcher."""
-    
-    print("COVID-19 Statistics Fetcher")
-    print("-" * 50)
-    
-    while True:
-        country = input("Enter country name (or 'exit' to quit): ").strip()
-        
-        if country.lower() == 'exit':
-            print("Goodbye!")
-            break
-        
-        if not country:
-            print("Please enter a valid country name.\n")
-            continue
-        
-        print("Fetching data...")
-        data = fetch_covid_data(country)
-        
-        if data:
-            display_covid_stats(data)
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            left = mid + 1
         else:
-            print("Could not fetch data. Please try again.\n")
+            right = mid - 1
+    
+    return -1
 
 
+# Example usage
 if __name__ == "__main__":
-    main()
+    numbers = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+    target = 7
+    
+    result = binary_search(numbers, target)
+    
+    if result != -1:
+        print(f"Element found at index: {result}")
+    else:
+        print("Element not found in the array")
+
+
+#convert to java
+public class BinarySearch {
+    public static int binarySearch(int[] arr, int target) {
+        int left = 0;
+        int right = arr.length - 1;
+
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+
+            if (arr[mid] == target) {
+                return mid;
+            } else if (arr[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+
+        return -1; // Target not found
+    }
+
+    public static void main(String[] args) {
+        int[] numbers = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19};
+        int target = 7;
+
+        int result = binarySearch(numbers, target);
+
+        if (result != -1) {
+            System.out.println("Element found at index: " + result);
+        } else {
+            System.out.println("Element not found in the array");
+        }
+    }
+}
+#convert to c
+#include <stdio.h>
+
+int binarySearch(int arr[], int n, int target) {
+    int left = 0;
+    int right = n - 1;
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+
+        if (arr[mid] == target) {
+            return mid;
+        } else if (arr[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+
+    return -1;
+}
+
+int main() {
+    int numbers[] = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19};
+    int n = sizeof(numbers) / sizeof(numbers[0]);
+    int target = 7;
+
+    int result = binarySearch(numbers, n, target);
+
+    if (result != -1) {
+        printf("Element found at index: %d\n", result);
+    } else {
+        printf("Element not found in the array\n");
+    }
+
+    return 0;
+}
